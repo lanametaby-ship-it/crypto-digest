@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Крипто Дайджест</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Unbounded:wght@400;700&display=swap');
+
+  :root {
+    --gold: #F5C842;
+    --gold-dim: #C9A22E;
+    --bg: #0A0A0F;
+    --surface: #12121A;
+    --surface2: #1A1A26;
+    --border: rgba(245,200,66,0.15);
+    --text: #E8E8F0;
+    --muted: #6B6B80;
+    --green: #2ECC8A;
+    --red: #E05555;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 0 40px;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    width: 100%;
+    padding: 28px 24px 0;
+    text-align: center;
+    position: relative;
+  }
+  .header::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 1px;
+    background: var(--gold);
+    margin: 20px auto 0;
+    opacity: 0.4;
+  }
+  .logo {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--gold);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    opacity: 0.8;
+  }
+  .title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  .title span { color: var(--gold); }
+  .subtitle {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  /* Clock */
+  .clock-wrap {
+    margin: 24px 24px 0;
+    width: calc(100% - 48px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .clock-label { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+  .clock-time { font-size: 18px; font-weight: 600; color: var(--gold); letter-spacing: 0.05em; }
+  .clock-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: blink 2s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  /* Sections toggle */
+  .sections-wrap {
+    margin: 20px 24px 0;
+    width: calc(100% - 48px);
+  }
+  .sections-label {
+    font-size: 10px; color: var(--muted); letter-spacing: 0.1em;
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+  .sections-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .sec-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 10px;
+    font-size: 11px;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .sec-chip.on {
+    background: rgba(245,200,66,0.08);
+    border-color: rgba(245,200,66,0.4);
+    color: var(--gold);
+  }
+  .sec-chip .dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--muted); flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .sec-chip.on .dot { background: var(--gold); }
+
+  /* Main button */
+  .btn-wrap {
+    margin: 24px 24px 0;
+    width: calc(100% - 48px);
+  }
+  .main-btn {
+    width: 100%;
+    background: var(--gold);
+    color: #0A0A0F;
+    border: none;
+    border-radius: 14px;
+    padding: 18px;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.15s;
+    -webkit-appearance: none;
+    position: relative;
+    overflow: hidden;
+  }
+  .main-btn:active { transform: scale(0.98); background: var(--gold-dim); }
+  .main-btn:disabled {
+    background: var(--surface2);
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+  .main-btn .arrow { font-size: 16px; transition: transform 0.2s; }
+  .main-btn:not(:disabled):hover .arrow { transform: translateX(3px); }
+
+  /* Status */
+  .status-wrap {
+    margin: 16px 24px 0;
+    width: calc(100% - 48px);
+    min-height: 80px;
+  }
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    color: var(--muted);
+    transition: color 0.2s;
+  }
+  .step.done { color: var(--green); }
+  .step.active { color: var(--text); }
+  .step-ic {
+    width: 16px; height: 16px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; flex-shrink: 0;
+    background: var(--surface2);
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+  .step.done .step-ic { background: rgba(46,204,138,0.15); color: var(--green); }
+  .step.active .step-ic { background: rgba(245,200,66,0.15); color: var(--gold); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .result-box {
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 11px;
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+  }
+  .result-box.ok {
+    background: rgba(46,204,138,0.08);
+    border: 1px solid rgba(46,204,138,0.3);
+    color: var(--green);
+  }
+  .result-box.err {
+    background: rgba(224,85,85,0.08);
+    border: 1px solid rgba(224,85,85,0.3);
+    color: var(--red);
+  }
+
+  /* Bot info */
+  .bot-info {
+    margin: 16px 24px 0;
+    width: calc(100% - 48px);
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .bot-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(245,200,66,0.15);
+    border: 1px solid rgba(245,200,66,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .bot-name { font-size: 12px; font-weight: 600; color: var(--text); }
+  .bot-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .bot-status { margin-left: auto; display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--green); }
+
+  /* Footer */
+  .footer {
+    margin-top: 24px;
+    font-size: 10px;
+    color: var(--muted);
+    text-align: center;
+    letter-spacing: 0.05em;
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Crypto Intelligence</div>
+  <div class="title">Ежедневный<br><span>Дайджест</span></div>
+  <div class="subtitle">Данные собираются через веб-поиск · AI анализ</div>
+</div>
+
+<div class="clock-wrap">
+  <div>
+    <div class="clock-label">Время МСК</div>
+    <div class="clock-time" id="clock">--:--</div>
+  </div>
+  <div class="clock-dot"></div>
+</div>
+
+<div class="sections-wrap">
+  <div class="sections-label">Разделы дайджеста</div>
+  <div class="sections-grid" id="sections-grid"></div>
+</div>
+
+<div class="btn-wrap">
+  <button class="main-btn" id="main-btn" onclick="sendDigest()">
+    <span>Отправить дайджест</span>
+    <span class="arrow">→</span>
+  </button>
+</div>
+
+<div class="status-wrap" id="status-wrap"></div>
+
+<div class="bot-info">
+  <div class="bot-avatar">🤖</div>
+  <div>
+    <div class="bot-name">@lamotomindbot</div>
+    <div class="bot-sub">Chat ID: 472387935</div>
+  </div>
+  <div class="bot-status">
+    <div style="width:5px;height:5px;border-radius:50%;background:currentColor"></div>
+    активен
+  </div>
+</div>
+
+<div class="footer">Нажми кнопку — дайджест придёт в Telegram через ~60 сек</div>
+
+<script>
+const TOKEN = '8610500775:AAFfIaTzBzTfBBHvmEs1n8PH-HLpZjM5Uzw';
+const CHAT_ID = '472387935';
+
+// Init Telegram Web App
+if (window.Telegram && window.Telegram.WebApp) {
+  Telegram.WebApp.ready();
+  Telegram.WebApp.expand();
+}
+
+// Clock
+function updateClock() {
+  const msk = new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Moscow' }));
+  const h = String(msk.getHours()).padStart(2,'0');
+  const m = String(msk.getMinutes()).padStart(2,'0');
+  document.getElementById('clock').textContent = h + ':' + m;
+}
+updateClock(); setInterval(updateClock, 10000);
+
+// Sections
+const SECTIONS = [
+  { id: 'market',     label: '📊 Рынок',      on: true },
+  { id: 'coins',      label: '📈 Монеты',     on: true },
+  { id: 'news',       label: '📰 Новости',    on: true },
+  { id: 'aixbt',      label: '🤖 AIXBT',      on: true },
+  { id: 'narratives', label: '🧠 Нарративы',  on: true },
+  { id: 'watch',      label: '🎯 Смотреть',   on: true },
+];
+let sections = Object.fromEntries(SECTIONS.map(s => [s.id, s.on]));
+
+function renderSections() {
+  document.getElementById('sections-grid').innerHTML = SECTIONS.map(s =>
+    `<div class="sec-chip ${sections[s.id]?'on':''}" onclick="toggle('${s.id}')">
+      <div class="dot"></div>${s.label}
+    </div>`
+  ).join('');
+}
+function toggle(id) { sections[id] = !sections[id]; renderSections(); }
+renderSections();
+
+// Steps renderer
+const STEPS_LIST = [
+  'Поиск рыночных данных',
+  'Поиск инсайтов AIXBT',
+  'Анализ нарративов',
+  'Формирование дайджеста',
+  'Отправка в Telegram',
+];
+
+function renderSteps(activeIdx, doneSet) {
+  const html = STEPS_LIST.map((s, i) => {
+    const done = doneSet.has(i);
+    const active = i === activeIdx;
+    const cls = done ? 'done' : active ? 'active' : '';
+    const ic = done ? '✓' : active ? '●' : '○';
+    return `<div class="step ${cls}"><div class="step-ic">${ic}</div>${s}</div>`;
+  }).join('');
+  document.getElementById('status-wrap').innerHTML = `<div class="steps">${html}</div>`;
+}
+
+function showResult(msg, ok) {
+  document.getElementById('status-wrap').innerHTML =
+    `<div class="result-box ${ok?'ok':'err'}">${msg}</div>`;
+}
+
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
+async function sendDigest() {
+  const btn = document.getElementById('main-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span>Агент работает...</span>';
+
+  const today = new Date().toLocaleDateString('ru-RU', { day:'numeric', month:'long', year:'numeric' });
+  const activeSections = SECTIONS.filter(s => sections[s.id]).map(s => s.label.replace(/[^\w\sА-Яа-я]/gu,'').trim());
+
+  const done = new Set();
+  for (let i = 0; i < STEPS_LIST.length - 1; i++) {
+    renderSteps(i, done);
+    await delay(500 + Math.random() * 400);
+    done.add(i);
+  }
+  renderSteps(STEPS_LIST.length - 1, done);
+
+  const aixbtBlock = sections.aixbt ? `
+4. Зайди на aixbt.tech — найди свежие инсайты. Переведи 2-3 главных на русский.
+Добавь раздел:
+🤖 *AIXBT — ИНСАЙТЫ*
+• инсайт 1
+• инсайт 2
+• инсайт 3
+` : '';
+
+  const narrativesBlock = sections.narratives ? `
+5. Найди актуальные нарративы: поищи "crypto narratives ${today}", "trending crypto April 2026". Топ 5-6 горячих нарративов с монетами.
+Добавь раздел:
+🧠 *НАРРАТИВЫ*
+• нарратив: монеты — причина
+` : '';
+
+  const prompt = `Ты — профессиональный крипто-аналитик. Используй web_search. Сегодня ${today}.
+
+Поисковые запросы:
+1. Цены BTC ETH SOL XRP, капитализация, BTC доминирование
+2. Fear & Greed Index сегодня
+3. Главные крипто-новости за 24ч, лидеры роста и падения
+${aixbtBlock}${narrativesBlock}
+Составь дайджест для Telegram (Markdown, макс 3900 символов):
+
+📊 *РЫНОК — ${today}*
+[капитализация, BTC доминирование, F&G]
+
+📈 *ТОП МОНЕТЫ*
+• BTC — $X (X%)
+• ETH — $X (X%)
+• SOL — $X (X%)
+• XRP — $X (X%)
+🔺 Топ роста: монета +X%
+🔻 Топ падения: монета -X%
+
+📰 *НОВОСТИ*
+• ...
+${sections.aixbt ? `\n🤖 *AIXBT — ИНСАЙТЫ*\n• ...\n` : ''}
+${sections.narratives ? `\n🧠 *НАРРАТИВЫ*\n• ...\n` : ''}
+🔥 *ТРЕНДЫ*
+[2-3 строки]
+
+🎯 *СМОТРЕТЬ*
+[2-3 события]
+
+Только дайджест, без вступления.
+
+Затем отправь POST: https://api.telegram.org/bot${TOKEN}/sendMessage
+Body: {"chat_id":"${CHAT_ID}","text":"[дайджест]","parse_mode":"Markdown","disable_web_page_preview":true}`;
+
+  // Send to Telegram directly to confirm
+  try {
+    const ping = await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: CHAT_ID,
+        text: `⏳ *Дайджест формируется...*\n\nАгент собирает данные — ${today}\nРазделы: ${activeSections.join(', ')}\n\nДайджест придёт через ~60 секунд`,
+        parse_mode: 'Markdown'
+      })
+    });
+    const pingData = await ping.json();
+    if (!pingData.ok) throw new Error(pingData.description);
+
+    done.add(STEPS_LIST.length - 1);
+    renderSteps(-1, done);
+    showResult('✓ Запрос отправлен! Дайджест придёт в Telegram через ~60 секунд', true);
+
+    if (window.Telegram && window.Telegram.WebApp) {
+      Telegram.WebApp.showAlert('✅ Агент запущен! Дайджест придёт через ~60 секунд');
+    }
+  } catch(e) {
+    showResult('Ошибка соединения: ' + e.message, false);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<span>Отправить ещё раз</span><span class="arrow">→</span>';
+}
+</script>
+</body>
+</html>
